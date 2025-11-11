@@ -91,12 +91,20 @@ class UserNoteImageModel(TimestampMixin, Base):
     blob: Mapped[bytes] = mapped_column("blob", nullable=False)
     extra: Mapped[dict] = mapped_column(JSON, nullable=True)
 
+# Add these lines before creating the engine
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+
 
 # SSL Mode: https://www.postgresql.org/docs/9.0/libpq-ssl.html#LIBPQ-SSL-SSLMODE-STATEMENTS
 # p.s. asyncpg us ssl instead of sslmode: https://github.com/tortoise/aerich/issues/310
 connect_args = {}
-if settings.DATABASE_URL.startswith("postgresql"):
-    connect_args = {"ssl": "allow"}
+if DATABASE_URL.startswith("postgresql"):
+    connect_args = {"ssl": True}
+
 engine = create_async_engine(
     DATABASE_URL, connect_args=connect_args, pool_pre_ping=True
 )
