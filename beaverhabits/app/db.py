@@ -103,7 +103,12 @@ elif DATABASE_URL.startswith("postgresql://"):
 # p.s. asyncpg us ssl instead of sslmode: https://github.com/tortoise/aerich/issues/310
 connect_args = {}
 if DATABASE_URL.startswith("postgresql"):
-    connect_args = {"ssl": True}
+    import ssl
+    # For Render PostgreSQL with self-signed certs, skip verification
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    connect_args = {"ssl": ssl_context}
 
 engine = create_async_engine(
     DATABASE_URL, connect_args=connect_args, pool_pre_ping=True
